@@ -1,0 +1,7 @@
+interface:
+  display_name: "Java 代码生成"
+  short_description: "按既有分层与契约约束生成 Kotlin/Java 服务端代码"
+  default_prompt: "使用 $java-generate-skill 按当前仓库约束生成或补齐这段 Kotlin/Java 服务端代码。"
+
+policy:
+  allow_implicit_invocation: true
