@@ -31,6 +31,5 @@ description: Generate technical product requirement documents in Markdown from a
 
 ## File Output
 
-- Default behavior is to return Markdown in the response.
-- If the user explicitly asks to write a file, write it inside the current workspace only, preferably `./docs/<title>_PRD.md`.
-- Never write outside the workspace.
+- Default behavior is to return Markdown write to file, write it inside the current workspace only, preferably `/Users/knowreason/docs/<title>_PRD.md`..
+- Never write outside the workspace except `/Users/knowreason/docs`.
