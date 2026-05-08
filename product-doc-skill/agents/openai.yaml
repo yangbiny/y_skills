@@ -1,0 +1,7 @@
+interface:
+  display_name: "Product PRD"
+  short_description: "把原始需求整理成可落地的技术型 PRD"
+  default_prompt: "Use $product-doc-skill to turn this requirement into a structured technical PRD in Markdown."
+
+policy:
+  allow_implicit_invocation: true
