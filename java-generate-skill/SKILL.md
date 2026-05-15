@@ -28,6 +28,8 @@ description: 在 Kotlin + Java、Maven、DDD/CQRS、Dubbo 或 gRPC Facade 项目
 - 生成前检查、生成后说明格式：读取 [references/generation_checklist.md](references/generation_checklist.md)
 - 分层、文件组织、对象引用边界：读取 [references/layering_and_object_rules.md](references/layering_and_object_rules.md)
 - Facade、Converter、Repo、Domain、`withPrimary`、测试生成规则：读取 [references/generation_patterns.md](references/generation_patterns.md)
+- - 反面案例：`references/negative_case_code.md`:读取 [references/negative_case_code.md](references/negative_case_code.md)
+
 
 ## 触发后的默认动作
 
