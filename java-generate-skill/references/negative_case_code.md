@@ -34,3 +34,10 @@ fun normalizeStart(start: Int?): Int {
       colorCardActivityRepo.saveActivity(activity)
     } ?: throw IllegalStateException("xxx")
 ```
+
+5. 使用扩展属性：使用扩展方法，应当变更为 方法调用，例如：toAdminDto(params:ColorCardActivity)
+```kotlin
+private fun ColorCardActivity.toAdminDTO(): ColorCardActivityAdminDTO{
+  TODO()
+}
+```
