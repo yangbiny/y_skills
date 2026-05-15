@@ -22,6 +22,7 @@
 - 核心逻辑必须补测试。
 - 优先放到目标仓库已有的同类测试目录。
 - 接口、RPC、DTO等一律在：/Users/knowreason/object/dt-metadata 中
+- 生成的每一个类、方法，都要有对应的注释
 - 所有的逻辑优先考虑放入Domain中：例如：
 ```kotlin
 data class TestClass(
@@ -49,5 +50,6 @@ data class TestClass(
 - 生成前检查与生成后说明格式：`references/generation_checklist.md`
 - 分层、文件组织、对象引用边界：`references/layering_and_object_rules.md`
 - Facade、Converter、Repo、Domain、`withPrimary`、测试规则：`references/generation_patterns.md`
+- 反面案例：`references/negative_case_code.md`
 
 当 `AGENTS.md`、`SKILL.md`、`references/` 之间存在冲突时，优先遵守本文件与目标仓库自身约束。
