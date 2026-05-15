@@ -21,6 +21,21 @@
 - 如果目标仓库规定 Facade 写操作必须包 `withPrimary`，必须遵守。
 - 核心逻辑必须补测试。
 - 优先放到目标仓库已有的同类测试目录。
+- 接口、RPC、DTO等一律在：/Users/knowreason/object/dt-metadata 中
+- 所有的逻辑优先考虑放入Domain中：例如：
+```kotlin
+data class TestClass(
+  val state: Ine
+) {
+
+  /**
+   * 逻辑：结束的逻辑
+   */
+  fun finish(): Boolean{
+    this.state = 2
+  }
+}
+```
 
 ## 4. MCP 优先级
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Technical solution"
+  short_description: "基于PRD 整理成技术方案"
+  default_prompt: "Use $technical-solution-skill to turn this requirement into a structured Technical solution in Markdown."
+
+policy:
+  allow_implicit_invocation: true
