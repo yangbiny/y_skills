@@ -19,7 +19,7 @@
 - RepoImpl 只负责 `DO <-> Domain` 映射，不做协议层转换。
 - 遇到写类型操作，必须显式检查是否需要 `database.withPrimary` 或 `databases.withPrimary`。
 - 如果目标仓库规定 Facade 写操作必须包 `withPrimary`，必须遵守。
-- 核心逻辑必须补测试。
+- 核心逻辑必须补测试，但永远不能执行单元测试，只做编译验证。
 - 优先放到目标仓库已有的同类测试目录。
 - 接口、RPC、DTO等一律在：/Users/knowreason/object/dt-metadata 中
 - 生成的每一个类、方法，都要有对应的注释
