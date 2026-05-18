@@ -23,6 +23,7 @@
 - 优先放到目标仓库已有的同类测试目录。
 - 接口、RPC、DTO等一律在：/Users/knowreason/object/dt-metadata 中
 - 生成的每一个类、方法，都要有对应的注释
+- 方法中的状态变更、调用其他方法等都需要提供注释说明：当前的操作是什么
 - 所有的逻辑优先考虑放入Domain中：例如：
 ```kotlin
 data class TestClass(
