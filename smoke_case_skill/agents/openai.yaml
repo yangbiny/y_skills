@@ -1,0 +1,7 @@
+interface:
+  display_name: "Smoke Case"
+  short_description: "根据接口和流程生成冒烟测试用例 JSON"
+  default_prompt: "Use $smoke-case-skill to generate a runnable smoke test case JSON from these APIs and business steps."
+
+policy:
+  allow_implicit_invocation: true
