@@ -150,7 +150,63 @@
 | taskId | 创建任务响应 extract |
 | userId | 用户信息响应 extract |
 
-## 6. 完整示例：购买生图服务-主流程
+## 6. 数据筛选 JSONPath
+
+`extract` 和 `assertions.path` 都支持 Jayway JsonPath filter。用于从数组中选择满足业务条件的一条数据，例如“可领取”“余额大于 0”“库存大于 0”“状态可用”。
+
+基础格式：
+
+```text
+$.data.object_list[?(@.字段 op 值)][0].目标字段
+```
+
+生成要求：
+
+- 有筛选条件时，不要固定使用 `object_list[0]`。
+- 默认在 filter 后加 `[0]`，取第一条匹配数据。
+- 同一个筛选对象的多个字段要使用相同 filter，保证变量来自同一条数据。
+- 如果没有任何匹配项，后端断言会失败并返回 path not found。
+
+### 示例：筛选可领取色卡活动
+
+```json
+{
+  "extract": {
+    "colorCardActivityId": "$.data.object_list[?(@.equity.balanceTimes > 0)][0].activity.id",
+    "seriesInventoryId": "$.data.object_list[?(@.equity.balanceTimes > 0)][0].activity.seriesInventoryId"
+  },
+  "assertions": [
+    {
+      "path": "$.status",
+      "op": "eq",
+      "value": 1
+    },
+    {
+      "path": "$.data.object_list[?(@.equity.balanceTimes > 0)][0].equity.balanceTimes",
+      "op": "gt",
+      "value": 0
+    }
+  ]
+}
+```
+
+### 示例：筛选状态可用且库存大于 0 的数据
+
+```json
+{
+  "extract": {
+    "inventoryId": "$.data.object_list[?(@.status == 'enabled' && @.inventory > 0)][0].id"
+  },
+  "assertions": [
+    {
+      "path": "$.data.object_list[?(@.status == 'enabled' && @.inventory > 0)][0].id",
+      "op": "exists"
+    }
+  ]
+}
+```
+
+## 7. 完整示例：购买生图服务-主流程
 
 ### envJson
 

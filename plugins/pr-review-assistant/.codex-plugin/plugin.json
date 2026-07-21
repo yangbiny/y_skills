@@ -1,0 +1,21 @@
+{
+  "name": "pr-review-assistant",
+  "version": "0.1.0",
+  "description": "Local git diff PR review assistant for Codex.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "PR Review Assistant",
+    "shortDescription": "Review local git diffs only.",
+    "longDescription": "PR Review Assistant reviews local staged, unstaged, or ref-range git diffs and returns structured Markdown findings without using remote APIs or external MCP servers.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [
+      "Local Review",
+      "Code Quality"
+    ],
+    "defaultPrompt": "Use /review-pr to review the current repository git diff."
+  }
+}

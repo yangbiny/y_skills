@@ -31,9 +31,18 @@ def validate_assertion(assertion, step_index, assertion_index):
     prefix = f"steps[{step_index}].assertions[{assertion_index}]"
     require(isinstance(assertion, dict), f"{prefix} must be an object")
     require(assertion.get("path"), f"{prefix}.path is required")
+    require(isinstance(assertion.get("path"), str), f"{prefix}.path must be a string")
     op = assertion.get("op")
     require(op, f"{prefix}.op is required")
     require(op in ALLOWED_OPS, f"{prefix}.op unsupported: {op}")
+
+
+def validate_extract(extract, step_index):
+    prefix = f"steps[{step_index}].extract"
+    require(isinstance(extract, dict), f"{prefix} must be an object")
+    for key, value in extract.items():
+        require(isinstance(key, str) and key, f"{prefix} key must be a non-empty string")
+        require(isinstance(value, str) and value, f"{prefix}.{key} must be a JSONPath string")
 
 
 def validate_step(step, index):
@@ -51,8 +60,7 @@ def validate_step(step, index):
     for assertion_index, assertion in enumerate(assertions):
         validate_assertion(assertion, index, assertion_index)
 
-    extract = step.get("extract", {})
-    require(isinstance(extract, dict), f"{prefix}.extract must be an object")
+    validate_extract(step.get("extract", {}), index)
 
 
 def validate_case(case):

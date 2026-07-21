@@ -82,6 +82,52 @@ python3 scripts/validate_smoke_case.py /path/to/case.json
 - 后续查询、取消、校验步骤必须引用已提取变量，例如 `/api/order/{{orderId}}`。
 - 不确定 JSONPath 时使用最可能路径，并在“待补充信息”中标明需要确认。
 
+## 数据筛选规则
+
+当用户表达“筛选、找出、选择、可领取、可兑换、可用、库存大于 0、余额大于 0、次数大于 0、状态为 enabled/active/valid”等含义时，必须优先生成 JSONPath filter，而不是固定取数组第一条 `[0]`。
+
+生成规则：
+
+- 从数组中筛选满足条件的第一条数据时，使用 `数组路径[?(条件)][0]`。
+- `extract` 和 `assertions.path` 都可以使用 filter 表达式。
+- filter 后默认加 `[0]`，避免提取到整个数组。
+- 后续步骤引用 filter 提取出来的变量，不重复硬编码数组下标。
+- 如果条件字段不确定，先生成最可能的 filter，并在“待补充信息”中说明需要确认响应字段。
+
+常见示例：
+
+```json
+{
+  "extract": {
+    "colorCardActivityId": "$.data.object_list[?(@.equity.balanceTimes > 0)][0].activity.id",
+    "seriesInventoryId": "$.data.object_list[?(@.equity.balanceTimes > 0)][0].activity.seriesInventoryId"
+  },
+  "assertions": [
+    {
+      "path": "$.data.object_list[?(@.equity.balanceTimes > 0)][0].equity.balanceTimes",
+      "op": "gt",
+      "value": 0
+    }
+  ]
+}
+```
+
+多条件示例：
+
+```json
+{
+  "extract": {
+    "inventoryId": "$.data.object_list[?(@.status == 'enabled' && @.inventory > 0)][0].id"
+  },
+  "assertions": [
+    {
+      "path": "$.data.object_list[?(@.status == 'enabled' && @.inventory > 0)][0].id",
+      "op": "exists"
+    }
+  ]
+}
+```
+
 ## 输入类型处理
 
 ### 自然语言流程

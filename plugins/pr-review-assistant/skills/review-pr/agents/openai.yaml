@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review PR"
+  short_description: "Review local git diffs only."
+  default_prompt: "Use $review-pr to review the current repository git diff."
+policy:
+  allow_implicit_invocation: true
