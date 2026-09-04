@@ -15,6 +15,8 @@
 
 ## 写操作与 `withPrimary`
 
+1. 仅在 `dt-vshop`项目中，启用此规则
+
 每次生成写代码时，必须先判断两件事：
 
 1. 这是不是写操作。
@@ -82,6 +84,33 @@
 3. 能用值对象表达的概念，不要长期散落在 Application 或 Facade 的裸字段里。
 4. 状态流转、可生成判断、次数校验、唯一性规则，优先落在 Domain 或 Domain Service。
 5. 不把协议层兼容字段的脏语义带入 Domain 命名。
+6. 参数验证：需要将参数验证放在一个方法中，反向案例和正向案例如下
+```kotlin
+// 反向案例
+fun func(req){
+   require(data.accountId > 0) { "参数非法" }
+   require(data.accountId > 0) { "参数非法" }
+   require(data.accountId > 0) { "参数非法" }
+}
+
+// 正向案例
+fun func(req){
+  checkParams(req)
+}
+
+private fun checkParams(req){
+  // 验证XXX 必须为：XXX
+   require(data.accountId > 0) { "参数非法" }
+   // 验证XXX 必须为：XXXX
+   require(data.accountId > 0) { "参数非法" }
+   require(data.accountId > 0) { "参数非法" } 
+} 
+```
+7. 主方法中，必须保持干净、清晰的逻辑链路，比如：第一步、第二步、第三步；每一个主链路必须有注释
+
+## Facade调用逻辑
+
+1. Facade调用服务时，优先使用 Facade的原始方法类，不要新增 Cmd 等中转类
 
 ## 测试生成规则
 

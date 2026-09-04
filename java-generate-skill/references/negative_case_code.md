@@ -12,7 +12,7 @@ fun normalizeStart(start: Int?): Int {
 }
 ```
 
-2. 方法过于拆分：应直接提供一个验证参数的方法即可，如果只有一处使用，则不应创建方法
+2. 方法过于拆分：应直接提供一个验证参数的方法即可，如果只有一处使用，则不应创建方法；如果需要验证的东西超过 3个，则创建新的方法
 ```kotlin
  validateCreateActivityCmd(cmd)
     validateSeriesInventory(cmd.seriesInventoryId)
