@@ -2,3 +2,8 @@
 .idea
 .DS_Store
 .agents
+/.mysql_conf
+/mysql-readonly-mcp/.venv/
+/mysql-readonly-mcp/.uv-cache/
+__pycache__/
+*.pyc

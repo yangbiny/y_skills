@@ -1,0 +1,8 @@
+# Merge this table into your Codex MCP configuration; no credentials belong here.
+[mcp_servers.mysql_readonly]
+command = "/Users/knowreason/y_skills/mysql-readonly-mcp/.venv/bin/python"
+args = ["-B", "/Users/knowreason/y_skills/mysql-readonly-mcp/server.py"]
+cwd = "/Users/knowreason/y_skills/mysql-readonly-mcp"
+enabled_tools = ["list_tables", "describe_table", "query_readonly"]
+startup_timeout_sec = 15
+tool_timeout_sec = 25

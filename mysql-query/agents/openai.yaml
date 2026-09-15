@@ -1,0 +1,7 @@
+interface:
+  display_name: "MySQL 只读查询"
+  short_description: "允许Codex 查询mysql中的数据"
+  default_prompt: ""
+
+policy:
+  allow_implicit_invocation: true
