@@ -1,0 +1,14 @@
+# Maven 命令前缀放行规则。
+# 本规则不检查测试目标；禁止执行单元测试的约定仍须遵守。
+prefix_rule(
+    pattern = ["mvn"],
+    decision = "allow",
+    justification = "允许直接执行 Maven 命令；不得执行单元测试。",
+)
+
+# Git 命令前缀全量放行规则，覆盖查询、切换、合并、提交和推送等操作。
+prefix_rule(
+    pattern = ["git"],
+    decision = "allow",
+    justification = "用户授权默认放行 Git 相关命令。",
+)
