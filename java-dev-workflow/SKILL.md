@@ -19,6 +19,18 @@ description: 用于 Kotlin/Java、Maven、DDD 项目的功能开发、Bug 修复
 - 重构：明确需要保持的行为和接口契约。
 - 给出相关类名、方法名和文件路径。
 
+### 提速相关
+使用最多 3 个 subagents 并行分析：下方是案例，可以根据任务性质不同进行划分
+1. 后端保存链路和数据兼容性。
+2. 前端交互和字段传递。
+3. 接口契约及旧逻辑影响。
+
+* 所有代理先只读，不修改文件，不运行单元测试。
+* 主代理负责统一字段语义和接口契约，并汇总具体修改方案供我批准。
+* 子代理只返回结论、关键类/方法/路径和未确定项。
+
+对于需要修改的，均需要满足相关权限限制
+
 ## 2. 提出方案
 
 列出：
@@ -45,9 +57,10 @@ description: 用于 Kotlin/Java、Maven、DDD 项目的功能开发、Bug 修复
 
 - 遵循项目现有代码风格和 DDD 分层。
 - 保持接口契约，避免不必要的依赖和抽象。
-- Facade 写操作使用 databases.withPrimary 包裹。
+- 针对dt-vshop中的Facade 写操作，使用 databases.withPrimary 包裹。
 - 可用且适用时使用 java-generate-skill、code-generate-skill。
 - 核心逻辑按项目要求补充测试代码，但不得运行测试。
+- 对于 Dubbo Facade等类，在 /Users/knowreason/object/dt-metadata 中寻找相关的类
 
 ## 5. 检查与编译
 
@@ -69,3 +82,27 @@ description: 用于 Kotlin/Java、Maven、DDD 项目的功能开发、Bug 修复
 - dtw-guide 在确认分支后，可以 直接提交并推送变动到远程仓库中，并报告：变更已推送远程仓库。提交信息在分支上需要满足：[it reboot]变更内容[from codex]
 
 不得把未执行的检查描述为通过。
+
+## 7. Project Context（项目上下文）
+
+* 技术栈：Kotlin + Java
+* 运行环境：JVM
+* 构建工具：Maven
+* 架构：DDD
+
+模块划分：
+
+* application
+* domain
+* repository / infra
+* facade
+
+---
+
+## 8. Architecture Rules（架构约束）
+
+* domain 层只包含业务逻辑
+* repository 只负责数据访问
+* 不允许在 service 层写业务核心逻辑
+* facade 作为 RPC 入口
+

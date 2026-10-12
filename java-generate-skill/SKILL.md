@@ -14,7 +14,7 @@ description: 在 Kotlin + Java、Maven、DDD/CQRS、Dubbo 或 gRPC Facade 项目
 
 ## 使用流程
 
-1. 先读取目标仓库的 `AGENTS.md`、开发约定、模块结构说明。
+1. 先读取目标仓库和当前skill的的 `AGENTS.md`、开发约定、模块结构说明。
 2. 判断当前业务属于哪种目录风格：
    - 经典分层：`facade / application / domain / infra`
    - 业务目录：`components/<biz>/application|domain|infra`
