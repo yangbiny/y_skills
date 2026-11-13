@@ -2,6 +2,14 @@
 
 只读取与当前仓库相关的部分；路径只是定位线索，不授予跨仓库访问或修改权限。
 
+## Git 分支跟踪规则
+
+- 适用于本地分支名 `feature/impassive` 及其前缀匹配的相关分支，如 `feature/impassive-xxx`、`feature/impassive/xxx`。允许暂时没有 upstream；一旦设置，远程分支完整名称必须与本地分支完全相同，remote 名称以仓库实际配置为准。
+- 新建或切换这些分支、设置 upstream、pull/push 前检查当前分支、`branch.<分支>.remote`、`branch.<分支>.merge` 和实际推送目标；merge 必须为 `refs/heads/<本地完整分支名>`。不得跟踪 main/master 或任何异名开发分支，也不得通过 refspec 向异名分支推送。
+- 从 main/master 等基线创建时显式使用 `git switch --no-track -c <新分支> <已确认基线>`，避免继承基线跟踪配置。基线用于创建分支，不等于 upstream。
+- 已有异名 upstream 时停止依赖该配置的拉取推送，说明错误映射；在授权范围内解除错误跟踪，待同名远程分支存在后设置。不存在时保持无 upstream，只有已获推送授权才可用显式同名目标创建并跟踪；不得自动改名或改跟踪其他分支。
+- 规则是后续操作约束，不自动修改任何现有仓库配置，不新增切换分支、提交、推送、合并或强推授权。
+
 ## dt 系列项目
 
 - 涉及 Dubbo Facade、RPC、DTO 等共享契约时，在已授权且存在的 `/Users/knowreason/object/dt-metadata` 查找定义与消费者；不能假定所有项目的 HTTP DTO 或内部对象都归这个仓库。

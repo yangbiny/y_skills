@@ -1,10 +1,21 @@
-[mysql]
+[mysql.test]
 host =
 port = 3306
 user =
 password =
 database =
 
-[tls]
+[tls.test]
+enabled = true
+ca_file =
+
+[mysql.prod]
+host =
+port = 3306
+user =
+password =
+database =
+
+[tls.prod]
 enabled = true
 ca_file =

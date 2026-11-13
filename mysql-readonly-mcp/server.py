@@ -15,6 +15,7 @@ import threading
 import time
 from contextlib import suppress
 from pathlib import Path
+from typing import Literal
 
 import anyio
 import pymysql
@@ -47,7 +48,9 @@ class Rejected(Exception):
     """A fixed, credential-free message safe to expose to the model."""
 
 
-def read_config() -> dict:
+def read_config(environment: str = 'test') -> dict:
+    if environment not in ('test', 'prod'):
+        raise Rejected('ENVIRONMENT_INVALID: environment 仅允许 test 或 prod。')
     try:
         fd = os.open(CONFIG, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
         with os.fdopen(fd, 'r', encoding='utf-8') as stream:
@@ -57,9 +60,14 @@ def read_config() -> dict:
                 raise Rejected('CONFIG_PERMISSIONS: 配置须属于当前用户、权限为 600，且为普通小文件。')
             parser = configparser.ConfigParser(interpolation=None)
             parser.read_file(stream)
-        if set(parser.sections()) != {'mysql', 'tls'} or parser.defaults():
+        sections = set(parser.sections())
+        if sections == {'mysql', 'tls'}:
+            raise Rejected('CONFIG_ENVIRONMENT_REQUIRED: 旧配置未标明环境，请由用户将节名改为 mysql.test/tls.test 或 mysql.prod/tls.prod；不自动认定为测试库。')
+        if sections - {'mysql.test', 'tls.test', 'mysql.prod', 'tls.prod'} or parser.defaults():
             raise ValueError('sections')
-        mysql = parser['mysql']
+        if not {f'mysql.{environment}', f'tls.{environment}'} <= sections:
+            raise Rejected('CONFIG_ENVIRONMENT_MISSING: 所选环境缺少 mysql 或 tls 配置；不回退其他环境。')
+        mysql = parser[f'mysql.{environment}']
         if set(mysql) - {'host', 'port', 'user', 'password', 'database'}:
             raise ValueError('unknown key')
         options = {key: mysql[key] for key in ('host', 'user', 'password', 'database')}
@@ -70,7 +78,7 @@ def read_config() -> dict:
             raise ValueError('port')
         if options['database'].lower() in SYSTEM_DATABASES:
             raise ValueError('system database')
-        tls = parser['tls']
+        tls = parser[f'tls.{environment}']
         if set(tls) - {'enabled', 'ca_file'}:
             raise ValueError('unknown TLS key')
         enabled = tls.getboolean('enabled', True)
@@ -183,7 +191,7 @@ def read_rows(cursor, cap: int) -> tuple[dict, bool]:
     return result, exhausted
 
 
-def execute_tool(operation: str, argument: str | None = None) -> str:
+def execute_tool(operation: str, argument: str | None = None, environment: str = 'test') -> str:
     if not SLOTS.acquire(blocking=False):
         return packed({'error': 'BUSY', 'message': '当前已有两个查询，请稍后重试。'})
     start = time.monotonic()
@@ -193,7 +201,7 @@ def execute_tool(operation: str, argument: str | None = None) -> str:
     expired = threading.Event()
     fully_read = False
     try:
-        options = read_config()
+        options = read_config(environment)
         database = options['database']
         if operation == 'query':
             statement, cap = prepare_query(argument, database)
@@ -242,6 +250,7 @@ def execute_tool(operation: str, argument: str | None = None) -> str:
         if expired.is_set():
             raise Rejected('QUERY_TIMEOUT: 查询已超过时间限制。')
         result['elapsed_ms'] = round((time.monotonic() - start) * 1000)
+        result['environment'] = environment
         # Check escaped text size too, since this JSON is embedded in MCP JSON.
         payload = packed(result)
         if len(packed(payload)) > RESULT_BYTES:
@@ -285,27 +294,27 @@ mcp = FastMCP('mysql-readonly', log_level='CRITICAL')
     structured_output=False,
     annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False),
 )
-async def list_tables() -> str:
-    """列出配置数据库中账号可访问的表和视图；最多 500 条。"""
-    return await anyio.to_thread.run_sync(execute_tool, 'list')
+async def list_tables(environment: Literal['test', 'prod'] = 'test') -> str:
+    """列出所选环境的表和视图；默认 test，明确指定线上才用 prod；只读，最多 500 条。"""
+    return await anyio.to_thread.run_sync(execute_tool, 'list', None, environment)
 
 
 @mcp.tool(
     structured_output=False,
     annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False),
 )
-async def describe_table(table: str) -> str:
-    """查看当前库内单个表或视图的字段及索引，不接受数据库名参数。"""
-    return await anyio.to_thread.run_sync(execute_tool, 'describe', table)
+async def describe_table(table: str, environment: Literal['test', 'prod'] = 'test') -> str:
+    """只读查看所选环境内单表字段及索引；默认 test，明确指定线上才用 prod，不接收数据库名。"""
+    return await anyio.to_thread.run_sync(execute_tool, 'describe', table, environment)
 
 
 @mcp.tool(
     structured_output=False,
     annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=False),
 )
-async def query_readonly(sql: str) -> str:
-    """执行当前库内受限 SELECT；默认 100 行、最多 500 行、SQL 执行限制 5 秒。"""
-    return await anyio.to_thread.run_sync(execute_tool, 'query', sql)
+async def query_readonly(sql: str, environment: Literal['test', 'prod'] = 'test') -> str:
+    """执行所选环境的受限 SELECT；默认 test，明确指定线上才用 prod；默认 100 行、最多 500 行、限时 5 秒。"""
+    return await anyio.to_thread.run_sync(execute_tool, 'query', sql, environment)
 
 
 if __name__ == '__main__':

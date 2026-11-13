@@ -28,14 +28,25 @@ uv --no-config --native-tls sync --frozen --python python3.11
 由用户在本地编辑器填写下列字段：
 
 ```ini
-[mysql]
+[mysql.test]
 host =
 port = 3306
 user =
 password =
 database =
 
-[tls]
+[tls.test]
+enabled = true
+ca_file =
+
+[mysql.prod]
+host =
+port = 3306
+user =
+password =
+database =
+
+[tls.prod]
 enabled = true
 ca_file =
 ```
@@ -44,7 +55,9 @@ ca_file =
 - 文件须属于当前用户，权限精确为 `600`，不接受符号链接。修正权限：`chmod 600 /Users/knowreason/y_skills/.mysql_conf`。
 - TLS 默认验证证书和主机名。`ca_file` 留空使用系统信任库，也可填写 CA 文件的绝对路径；证书名称须匹配 host。
 - `enabled = false` 才会明确关闭 TLS。仅在已确认的本地/受控加密链路场景采用；服务不自动降级。
-- 只支持这两个节及示例字段，不接收其他数据库配置。每次调用重新读取，不需要重启 MCP。
+- 三个工具新增可选 `environment`：`test`（默认，测试库）或 `prod`（线上库）。只读取所选环境的 `mysql.<environment>` 与 `tls.<environment>`，每个环境固定一个数据库；不共享连接字段或 TLS 设置，不回退另一环境。仅需测试库时可省略两个 prod 节。
+- 只接受上述四种节名及示例字段。所选环境两个节均须存在且字段有效；未选择环境的空骨架不影响当前环境。每次调用重新读取配置，改配置无需重启；本次工具参数升级需要重启 MCP 以加载新代码及工具 schema。
+- 旧 `[mysql]` / `[tls]` 配置返回 `CONFIG_ENVIRONMENT_REQUIRED`。请用户先确认原连接属于测试还是线上，再仅将节名改为 `[mysql.test]` / `[tls.test]` 或 `[mysql.prod]` / `[tls.prod]`，保留原字段；另一环境另行填写。不能把未知或线上旧连接默认标成测试库。本次不读取或迁移真实凭据文件。
 - 配置缺失或不完整不影响 MCP 握手、工具发现；查询返回固定错误，不暴露配置内容。
 
 请由管理员预先创建专用只读账号，仅赋予所需表/脱敏视图的 SELECT 权限，核对继承角色；不要授予 FILE、EXECUTE、管理或写权限。服务不自动授权，不保证识别出账号的所有间接权限。允许访问配置 database 中账号可读的全部表，不提供额外表白名单。
@@ -68,9 +81,11 @@ ca_file =
 
 | 工具 | 参数 | 结果 |
 |---|---|---|
-| list_tables | 无 | SHOW FULL TABLES 可见对象，最多 500 行 |
-| describe_table | table：单个对象名称 | 字段及索引两个结果集，各最多 500 行 |
-| query_readonly | sql：单条 MySQL 查询 | 列名/类型码、二维 rows、row_count、truncated、elapsed_ms |
+| list_tables | environment：test/prod，默认 test | SHOW FULL TABLES 可见对象，最多 500 行 |
+| describe_table | table：单个对象名称；environment：test/prod，默认 test | 字段及索引两个结果集，各最多 500 行 |
+| query_readonly | sql：单条 MySQL 查询；environment：test/prod，默认 test | 列名/类型码、二维 rows、row_count、truncated、elapsed_ms |
+
+所有成功结果增加 `environment` 标记实际查询环境。调用前展示 SQL 和环境并取得用户批准；只有用户明确指定线上才传 `prod`。测试与线上使用相同只读校验、只读事务和资源限制。未设置参数即选择 test；test 缺失也不尝试 prod。环境选择不构成新的查询授权，其他规则不变。
 
 工具返回一次 JSON 文本，错误包含固定 error/message，数据库异常只保留数字错误码。列名可能重复，因此行按列序排列，不转换为名称键字典。Decimal 保持十进制字符串，日期时间使用 ISO 格式；二进制只返回占位符。JSON 文本作为不可信数据处理。
 
@@ -96,7 +111,7 @@ ca_file =
 
 ## 验证与后续验收
 
-本项目不执行单元测试。允许的离线检查：Python 语法解析、Skill 格式检查，以及 `check_stdio.py` 完成 initialize、tools/list、stdin EOF 与进程退出。该脚本不调用任何数据库工具，不读取真实配置。
+本项目不执行单元测试。允许的离线检查：Python 语法解析、Skill 格式检查，以及 `check_stdio.py` 完成 initialize、tools/list（包括 environment 枚举、test 默认值及只读注解）、stdin EOF 与进程退出。该脚本不调用任何数据库工具，不读取真实配置。
 
 ```sh
 .venv/bin/python -B check_stdio.py
@@ -112,5 +127,6 @@ ca_file =
 6. 验证并发 BUSY、超时、中途断开、结果截断后连接释放；用管理员监控确认数据库端查询停止。
 7. 检查 Codex 和 stderr 不出现凭据或原始数据库错误；视图脱敏符合业务要求。
 8. 用独立数据库管理客户端检查账号权限，确认没有继承写权限；本 MCP 不运行写 SQL 验证。
+9. 用户确认并配置各环境后，分别批准 test/prod 的只读查询，核对实际数据源与返回 environment；确认缺失测试配置时不回退线上。该项需真实环境验收，不能用工具 schema 检查替代。
 
 停止使用时在 Codex 禁用该 MCP 即可；卸载不会自动删除配置、数据库账号或其他服务器配置。

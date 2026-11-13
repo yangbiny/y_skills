@@ -1,11 +1,15 @@
 ---
 name: mysql-query
-description: 通过本地 mysql_readonly MCP 查询业务 MySQL 的表结构和数据。用于数据排查、明细查询和统计；不用于数据库写入、管理或 MySQL 内核源码分析。
+description: 通过本地 mysql_readonly MCP 只读查询业务 MySQL 的表结构和数据，默认测试库，用户明确指定时查询线上库。用于数据排查、明细查询和统计；不用于数据库写入、管理或 MySQL 内核源码分析。
 ---
 
 # MySQL 业务查询
 
 使用 mysql_readonly MCP 的 list_tables、describe_table、query_readonly 工具。
+
+- 三个工具均使用 `environment` 选择环境：`test` 为测试库（默认），`prod` 为线上库。用户未指定环境时使用 test；仅在用户明确指定线上/生产/prod 时使用 prod，该指定仅覆盖当前明确的查询范围，不作为后续无关任务的默认值。
+- SQL 审批时同时展示目标环境；查询前核对批准环境，表结构与数据查询使用同一环境。切换环境需核对该环境结构，不把测试数据或结构当作线上事实。
+- 环境配置缺失、连接失败或权限不足时停止，不回退或尝试另一环境。旧的无环境配置不自动当作测试库，需用户明确归类。结果中说明实际 environment；线上库同样遵守全部只读与查询限制。
 
 - 需求涉及不明确的表或字段时，先查看可访问表及结构，再构造 SQL。无需每次重复读取已确认的结构。
 - 选择必要字段，明细默认 LIMIT 100；尽量使用索引条件及明确时间范围。COUNT(*) 可用，SELECT * 和 table.* 不可用。
@@ -18,6 +22,6 @@ description: 通过本地 mysql_readonly MCP 查询业务 MySQL 的表结构和�
 - 表信息从代码中获得
 - 执行查询前需要提供sql，审批通过后可执行
 
-工具只接收表名或 SQL，不接收连接地址、账号或安全开关。固定单数据库，默认 100 行、上限 500 行，禁用跨库、多语句、锁定、文件操作、递归 CTE 和未批准函数。
+工具接收表名或 SQL，以及可选的 environment（test/prod，默认 test），不接收连接地址、账号或安全开关。每个环境固定单数据库，默认 100 行、上限 500 行，禁用跨库、多语句、锁定、文件操作、递归 CTE 和未批准函数。
 
 接入与故障说明见 [MCP 使用说明](/Users/knowreason/y_skills/mysql-readonly-mcp/README.md)。仅当用户要求配置或排障时阅读。此 Skill 的约束是行为规则，数据库只读账号是权限底线。

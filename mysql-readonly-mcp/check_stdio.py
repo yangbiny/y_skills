@@ -48,12 +48,21 @@ try:
     names = {tool['name'] for tool in result['tools']}
     if names != {'list_tables', 'describe_table', 'query_readonly'}:
         raise RuntimeError('Unexpected tool list')
+    for tool in result['tools']:
+        schema = tool['inputSchema']
+        environment = schema.get('properties', {}).get('environment', {})
+        if (environment.get('enum') != ['test', 'prod']
+                or environment.get('default') != 'test'
+                or 'environment' in schema.get('required', [])):
+            raise RuntimeError('Unexpected environment contract')
+        if tool.get('annotations', {}).get('readOnlyHint') is not True:
+            raise RuntimeError('Missing read-only annotation')
     process.stdin.close()
     if process.wait(timeout=10) != 0:
         raise RuntimeError('Nonzero exit on stdin EOF')
     if process.stderr.read():
         raise RuntimeError('Unexpected stderr output')
-    print('PASS: initialize, three tools, clean stdin EOF exit; no database calls.')
+    print('PASS: initialize, three read-only tools, environment test/prod with test default, clean stdin EOF exit; no database calls.')
 finally:
     selector.close()
     if process.poll() is None:
